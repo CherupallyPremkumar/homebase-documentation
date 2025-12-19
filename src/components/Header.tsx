@@ -1,10 +1,11 @@
-import { Menu, X, Key, LogOut } from 'lucide-react';
+import { Menu, X, Key, LogOut, Search } from 'lucide-react';
 
 interface HeaderProps {
     isAuthenticated: boolean;
     onAuthClick: () => void;
     onLogout: () => void;
     onToggleSidebar: () => void;
+    onSearchClick: () => void;
     sidebarOpen: boolean;
 }
 
@@ -13,6 +14,7 @@ export function Header({
     onAuthClick,
     onLogout,
     onToggleSidebar,
+    onSearchClick,
     sidebarOpen,
 }: HeaderProps) {
     return (
@@ -28,6 +30,17 @@ export function Header({
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
+                        <button
+                            onClick={onSearchClick}
+                            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300"
+                            title="Search (Cmd/Ctrl + K)"
+                        >
+                            <Search className="h-4 w-4" />
+                            <span className="hidden sm:inline">Search</span>
+                            <kbd className="hidden md:inline-block px-2 py-0.5 text-xs bg-gray-100 border border-gray-300 rounded">
+                                ⌘K
+                            </kbd>
+                        </button>
                         {isAuthenticated ? (
                             <button
                                 onClick={onLogout}

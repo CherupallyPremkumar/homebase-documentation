@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import matter from 'gray-matter';
 import { githubService } from './services/github';
 import { AuthModal } from './components/AuthModal';
@@ -7,6 +7,7 @@ import { Header } from './components/Header';
 import { CategoryTabs } from './components/CategoryTabs';
 import { Sidebar } from './components/Sidebar';
 import { DocumentViewer } from './components/DocumentViewer';
+import { SearchModal } from './components/SearchModal';
 import { useDocuments } from './hooks/useDocuments';
 import { useDocumentOperations } from './hooks/useDocumentOperations';
 import { CATEGORIES } from './constants/categories';
@@ -20,6 +21,7 @@ function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showEditorModal, setShowEditorModal] = useState(false);
   const [editingDoc, setEditingDoc] = useState<DocItem | null>(null);
+  const [showSearchModal, setShowSearchModal] = useState(false);
 
   const docs = useDocuments();
   const documentOps = useDocumentOperations(
@@ -42,6 +44,27 @@ function App() {
     setIsAuthenticated(false);
   };
 
+  const handleSelectDocument = (docId: string) => {
+    const doc = docs.find(d => d.id === docId);
+    if (doc) {
+      setActiveCategory(doc.category);
+      setSelectedDoc(docId);
+    }
+  };
+
+  // Keyboard shortcut for search (Cmd/Ctrl + K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowSearchModal(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
@@ -49,6 +72,7 @@ function App() {
         onAuthClick={() => setShowAuthModal(true)}
         onLogout={handleLogout}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        onSearchClick={() => setShowSearchModal(true)}
         sidebarOpen={sidebarOpen}
       />
 
@@ -102,6 +126,13 @@ function App() {
         }) : ''}
         category={activeCategory}
         title={editingDoc?.title || 'New Document'}
+      />
+
+      <SearchModal
+        isOpen={showSearchModal}
+        onClose={() => setShowSearchModal(false)}
+        documents={docs}
+        onSelectDocument={handleSelectDocument}
       />
     </div>
   );
