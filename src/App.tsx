@@ -105,8 +105,9 @@ function App() {
       }
 
       await githubService.deleteFile(path, file.sha, `Delete ${doc.title}`);
-      alert('Document deleted! The page will reload in 3 seconds to show the changes.');
-      setTimeout(() => window.location.reload(), 3000);
+      alert('Document deleted successfully!');
+      // Navigate to category home (first document in the category)
+      setSelectedDoc(null);
     } catch (error) {
       console.error('Delete failed:', error);
       alert('Failed to delete document. Please try again.');
@@ -133,8 +134,11 @@ function App() {
         await githubService.createFile(path, content, commitMessage);
       }
 
-      alert('Document saved! The page will reload in 3 seconds to show the changes.');
-      setTimeout(() => window.location.reload(), 3000);
+      alert('Document saved successfully!');
+      // Close modal and navigate to category home
+      setShowEditorModal(false);
+      setEditingDoc(null);
+      setSelectedDoc(null);
     } catch (error) {
       console.error('Save failed:', error);
       throw error;
