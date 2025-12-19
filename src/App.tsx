@@ -1,7 +1,6 @@
-import { useState } from 'react';
-import { Plus, Trash2, Check, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Trash2, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-// Note: We'll style heavily with tailwind classes directly for speed, then refactor to components if requested.
 
 interface Todo {
   id: string;
@@ -10,9 +9,40 @@ interface Todo {
   createdAt: number;
 }
 
+const SEED_TASKS: Todo[] = [
+  {
+    id: 'seed-1',
+    text: '📦 Migrate from Git URL to GitHub Packages for @homebase/shared (Phase 2)',
+    completed: false,
+    createdAt: Date.now() - 1000,
+  },
+  {
+    id: 'seed-2',
+    text: '🏗️ Evaluate Monorepo migration (Turborepo/Nx) when team grows (Phase 3)',
+    completed: false,
+    createdAt: Date.now() - 2000,
+  },
+  {
+    id: 'seed-3',
+    text: '📝 Document API contracts between frontend and backend',
+    completed: false,
+    createdAt: Date.now() - 3000,
+  },
+];
+
 function App() {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todos, setTodos] = useState<Todo[]>(() => {
+    const saved = localStorage.getItem('homebase-todos');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return SEED_TASKS;
+  });
   const [inputValue, setInputValue] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem('homebase-todos', JSON.stringify(todos));
+  }, [todos]);
 
   const addTodo = (e: React.FormEvent) => {
     e.preventDefault();
