@@ -133,13 +133,27 @@ export function CommentsSection({
                     ) : error ? (
                         <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
                             <p className="text-red-700 font-medium mb-2">Failed to load comments</p>
-                            <p className="text-sm text-red-600">{error}</p>
-                            <button
-                                onClick={loadComments}
-                                className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                            >
-                                Try Again
-                            </button>
+                            <p className="text-sm text-red-600 mb-3">{error}</p>
+                            <p className="text-sm text-gray-700 mb-3">
+                                You can still comment on this document by creating a GitHub issue directly:
+                            </p>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={loadComments}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                                >
+                                    Try Again
+                                </button>
+                                <a
+                                    href={`https://github.com/CherupallyPremkumar/homebase-documentation/issues/new?title=Comments: ${encodeURIComponent(documentTitle)}&labels=documentation,comments&body=${encodeURIComponent(`Discussion for: **${documentTitle}**\n\nDocument path: \`${documentPath}\`\n\n---\n\nYour comment here...`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                                >
+                                    <ExternalLink className="h-4 w-4" />
+                                    Comment on GitHub
+                                </a>
+                            </div>
                         </div>
                     ) : (
                         <>
