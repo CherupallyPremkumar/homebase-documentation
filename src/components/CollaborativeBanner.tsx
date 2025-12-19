@@ -9,14 +9,14 @@ export function CollaborativeBanner({ onAuthClick, isAuthenticated }: Collaborat
     if (isAuthenticated) return null;
 
     return (
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-xl p-6 mb-6">
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-xl p-6 mb-6 w-full">
             <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
                         <Users className="h-6 w-6 text-white" />
                     </div>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-bold text-gray-900 mb-2">
                         🌟 Open Collaborative Documentation
                     </h3>
