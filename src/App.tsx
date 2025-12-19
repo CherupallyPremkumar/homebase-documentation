@@ -93,7 +93,7 @@ function App() {
         onNewDocument={() => documentOps.handleNewDocument(setEditingDoc, setShowEditorModal)}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <CollaborativeBanner
           onAuthClick={() => setShowAuthModal(true)}
           isAuthenticated={isAuthenticated}
