@@ -399,6 +399,31 @@ export class GitHubService {
     }
 
     /**
+     * Delete a comment from an issue
+     */
+    async deleteComment(commentId: number): Promise<void> {
+        if (!this.token) throw new Error('Not authenticated');
+
+        try {
+            const response = await fetch(
+                `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/issues/comments/${commentId}`,
+                {
+                    method: 'DELETE',
+                    headers: this.getHeaders(),
+                }
+            );
+
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(error || 'Failed to delete comment');
+            }
+        } catch (error) {
+            console.error('Error deleting comment:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Get headers for GitHub API requests
      */
     private getHeaders(): HeadersInit {

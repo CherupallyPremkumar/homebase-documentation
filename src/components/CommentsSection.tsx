@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, Send, ExternalLink, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, ExternalLink, Loader2, Trash2 } from 'lucide-react';
 import { githubService, type GitHubIssue, type GitHubComment } from '@/services/github';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -73,6 +73,21 @@ export function CommentsSection({
             alert('Failed to submit comment. Please try again.');
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const handleDeleteComment = async (commentId: number) => {
+        if (!confirm('Are you sure you want to delete this comment? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            await githubService.deleteComment(commentId);
+            // Reload comments to reflect the deletion
+            await loadComments();
+        } catch (error) {
+            console.error('Failed to delete comment:', error);
+            alert('Failed to delete comment. Please try again.');
         }
     };
 
@@ -206,16 +221,25 @@ export function CommentsSection({
                                                     className="w-10 h-10 rounded-full"
                                                 />
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <span className="font-semibold text-gray-900">
-                                                            {comment.author}
-                                                        </span>
-                                                        <span className="text-sm text-gray-500">
-                                                            {formatDate(comment.createdAt)}
-                                                        </span>
-                                                        {comment.createdAt !== comment.updatedAt && (
-                                                            <span className="text-xs text-gray-400">(edited)</span>
-                                                        )}
+                                                    <div className="flex items-center justify-between gap-2 mb-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-semibold text-gray-900">
+                                                                {comment.author}
+                                                            </span>
+                                                            <span className="text-sm text-gray-500">
+                                                                {formatDate(comment.createdAt)}
+                                                            </span>
+                                                            {comment.createdAt !== comment.updatedAt && (
+                                                                <span className="text-xs text-gray-400">(edited)</span>
+                                                            )}
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleDeleteComment(comment.id)}
+                                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                            title="Delete comment"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
                                                     </div>
                                                     <div className="prose prose-sm max-w-none">
                                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
