@@ -16,8 +16,8 @@ interface DocItem {
   priority?: string;
 }
 
-// Import all markdown files from /docs folder
-const docFiles = import.meta.glob('/docs/**/*.md', { as: 'raw', eager: true });
+// Import all markdown files from /public/docs folder
+const docFiles = import.meta.glob('/public/docs/**/*.md', { as: 'raw', eager: true });
 
 const CATEGORIES = [
   { id: 'documentation' as Category, label: 'Documentation', icon: FileText, color: 'bg-gray-700' },
