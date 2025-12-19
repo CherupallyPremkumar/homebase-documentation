@@ -3,6 +3,7 @@ import { Edit2, Trash2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
+import { PlantUMLDiagram } from './PlantUMLDiagram';
 import type { DocItem, CategoryConfig } from '@/types';
 
 interface DocumentViewerProps {
@@ -100,7 +101,40 @@ export function DocumentViewer({
                         prose-th:bg-gray-100 prose-th:p-3 prose-th:text-left prose-th:font-semibold prose-th:border prose-th:border-gray-300
                         prose-td:p-3 prose-td:border prose-td:border-gray-300
                         prose-hr:border-gray-300 prose-hr:my-8">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                                code(props) {
+                                    const { node, inline, className, children, ...rest } = props as any;
+                                    const match = /language-(\w+)/.exec(className || '');
+                                    const language = match ? match[1] : '';
+                                    const codeContent = String(children).replace(/\n$/, '');
+
+                                    // Check if it's a PlantUML diagram
+                                    if (!inline && (language === 'plantuml' || language === 'uml')) {
+                                        return <PlantUMLDiagram code={codeContent} />;
+                                    }
+
+                                    // Regular code block
+                                    if (!inline) {
+                                        return (
+                                            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto shadow-lg">
+                                                <code className={className} {...rest}>
+                                                    {children}
+                                                </code>
+                                            </pre>
+                                        );
+                                    }
+
+                                    // Inline code
+                                    return (
+                                        <code className={className} {...rest}>
+                                            {children}
+                                        </code>
+                                    );
+                                }
+                            }}
+                        >
                             {document.content}
                         </ReactMarkdown>
                     </div>
