@@ -268,17 +268,24 @@ export class GitHubService {
 
         try {
             // Search for existing issue with this title
-            const searchQuery = `repo:${REPO_OWNER}/${REPO_NAME} is:issue label:documentation "${documentTitle}"`;
+            // Use label:documentation instead of label:"documentation"
+            const searchQuery = `repo:${REPO_OWNER}/${REPO_NAME} is:issue label:documentation in:title "${documentTitle}"`;
+            console.log('Searching for issue with query:', searchQuery);
+
             const response = await fetch(
                 `${GITHUB_API_BASE}/search/issues?q=${encodeURIComponent(searchQuery)}`,
                 { headers: this.getHeaders() }
             );
 
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Search failed:', response.status, errorText);
                 throw new Error(`Failed to search issues: ${response.statusText}`);
             }
 
             const data = await response.json();
+            console.log('Search results:', data);
+
             if (data.items && data.items.length > 0) {
                 return {
                     number: data.items[0].number,

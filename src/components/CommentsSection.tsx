@@ -23,6 +23,7 @@ export function CommentsSection({
     const [newComment, setNewComment] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [showComments, setShowComments] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (showComments && isAuthenticated) {
@@ -32,11 +33,14 @@ export function CommentsSection({
 
     const loadComments = async () => {
         setLoading(true);
+        setError(null);
         try {
+            console.log('Loading comments for:', documentTitle);
             // Try to find existing issue
             let documentIssue = await githubService.getDocumentIssue(documentTitle);
 
             if (!documentIssue) {
+                console.log('No existing issue found, creating new one');
                 // Create new issue if it doesn't exist
                 documentIssue = await githubService.createDocumentIssue(documentTitle, documentPath);
             }
@@ -46,8 +50,9 @@ export function CommentsSection({
             // Load comments
             const issueComments = await githubService.getIssueComments(documentIssue.number);
             setComments(issueComments);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to load comments:', error);
+            setError(error.message || 'Failed to load comments. Please check your GitHub token permissions.');
         } finally {
             setLoading(false);
         }
@@ -124,6 +129,17 @@ export function CommentsSection({
                     {loading ? (
                         <div className="flex items-center justify-center py-12">
                             <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
+                        </div>
+                    ) : error ? (
+                        <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-red-700 font-medium mb-2">Failed to load comments</p>
+                            <p className="text-sm text-red-600">{error}</p>
+                            <button
+                                onClick={loadComments}
+                                className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                            >
+                                Try Again
+                            </button>
                         </div>
                     ) : (
                         <>
