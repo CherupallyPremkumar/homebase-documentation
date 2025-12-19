@@ -106,7 +106,8 @@ export class GitHubService {
     async createFile(
         path: string,
         content: string,
-        message: string = 'Create new document'
+        message: string = 'Create new document',
+        isBase64: boolean = false
     ): Promise<void> {
         if (!this.token) throw new Error('Not authenticated');
 
@@ -118,7 +119,7 @@ export class GitHubService {
                     headers: this.getHeaders(),
                     body: JSON.stringify({
                         message,
-                        content: btoa(unescape(encodeURIComponent(content))), // Encode to base64
+                        content: isBase64 ? content : btoa(unescape(encodeURIComponent(content))), // Encode to base64 if not already
                         branch: BRANCH,
                     }),
                 }

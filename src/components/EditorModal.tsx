@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Save, Image } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import matter from 'gray-matter';
@@ -30,6 +30,9 @@ export function EditorModal({
     const [commitMessage, setCommitMessage] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         if (initialContent) {
@@ -48,6 +51,77 @@ export function EditorModal({
     }, [initialContent, initialTitle]);
 
     if (!isOpen) return null;
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image size must be less than 5MB');
+            return;
+        }
+
+        setIsUploadingImage(true);
+
+        try {
+            // Read file as base64
+            const reader = new FileReader();
+            reader.onload = async () => {
+                const base64Content = (reader.result as string).split(',')[1];
+
+                // Generate filename
+                const timestamp = Date.now();
+                const extension = file.name.split('.').pop();
+                const filename = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${timestamp}.${extension}`;
+                const path = `public/images/${filename}`;
+
+                try {
+                    // Upload to GitHub
+                    const { githubService } = await import('../services/github');
+                    await githubService.createFile(
+                        path,
+                        base64Content,
+                        `Add image ${filename}`,
+                        true // isBase64
+                    );
+
+                    // Insert markdown at cursor position
+                    const textarea = textareaRef.current;
+                    if (textarea) {
+                        const cursorPos = textarea.selectionStart;
+                        const imageMarkdown = `\n![${file.name}](/images/${filename})\n`;
+                        const newContent =
+                            content.substring(0, cursorPos) +
+                            imageMarkdown +
+                            content.substring(cursorPos);
+                        setContent(newContent);
+                    }
+
+                    alert('Image uploaded successfully!');
+                } catch (error) {
+                    console.error('Upload failed:', error);
+                    alert('Failed to upload image. Please try again.');
+                }
+            };
+            reader.readAsDataURL(file);
+        } catch (error) {
+            console.error('Failed to read file:', error);
+            alert('Failed to read image file.');
+        } finally {
+            setIsUploadingImage(false);
+            // Reset file input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -167,27 +241,48 @@ export function EditorModal({
 
                     {/* Editor Tabs */}
                     <div className="border-b border-gray-200 px-6">
-                        <div className="flex gap-4">
-                            <button
-                                type="button"
-                                onClick={() => setShowPreview(false)}
-                                className={`px-4 py-2 font-medium border-b-2 transition-colors ${!showPreview
+                        <div className="flex gap-4 items-center justify-between">
+                            <div className="flex gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPreview(false)}
+                                    className={`px-4 py-2 font-medium border-b-2 transition-colors ${!showPreview
                                         ? 'border-gray-800 text-gray-900'
                                         : 'border-transparent text-gray-500 hover:text-gray-700'
-                                    }`}
-                            >
-                                Write
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowPreview(true)}
-                                className={`px-4 py-2 font-medium border-b-2 transition-colors ${showPreview
+                                        }`}
+                                >
+                                    Write
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPreview(true)}
+                                    className={`px-4 py-2 font-medium border-b-2 transition-colors ${showPreview
                                         ? 'border-gray-800 text-gray-900'
                                         : 'border-transparent text-gray-500 hover:text-gray-700'
-                                    }`}
-                            >
-                                Preview
-                            </button>
+                                        }`}
+                                >
+                                    Preview
+                                </button>
+                            </div>
+                            <div className="flex gap-2">
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    className="hidden"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={isUploadingImage || showPreview}
+                                    className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    title="Upload image to GitHub"
+                                >
+                                    <Image className="h-4 w-4" />
+                                    {isUploadingImage ? 'Uploading...' : 'Upload Image'}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -195,9 +290,10 @@ export function EditorModal({
                     <div className="flex-1 overflow-hidden">
                         {!showPreview ? (
                             <textarea
+                                ref={textareaRef}
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
-                                placeholder="Write your markdown content here..."
+                                placeholder="Write your markdown content here...\n\nTip: Click 'Upload Image' to add images directly!"
                                 className="w-full h-full p-6 font-mono text-sm resize-none focus:outline-none"
                                 required
                             />
