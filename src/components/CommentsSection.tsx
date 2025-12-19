@@ -22,7 +22,7 @@ export function CommentsSection({
     const [loading, setLoading] = useState(false);
     const [newComment, setNewComment] = useState('');
     const [submitting, setSubmitting] = useState(false);
-    const [showComments, setShowComments] = useState(false);
+    const showComments = true; // Always show comments
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -98,33 +98,30 @@ export function CommentsSection({
 
     return (
         <div className="mt-12 border-t border-gray-200 pt-8">
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5 text-gray-600" />
-                    <h2 className="text-2xl font-bold text-gray-900">Comments</h2>
-                    {issue && (
-                        <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-sm">
-                            {issue.commentsCount}
-                        </span>
-                    )}
-                </div>
-                {!showComments && (
-                    <button
-                        onClick={() => {
-                            if (!isAuthenticated) {
-                                onAuthRequired();
-                                return;
-                            }
-                            setShowComments(true);
-                        }}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-                    >
-                        Show Comments
-                    </button>
+            <div className="flex items-center gap-2 mb-6">
+                <MessageSquare className="h-5 w-5 text-gray-600" />
+                <h2 className="text-2xl font-bold text-gray-900">Comments</h2>
+                {issue && (
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-sm">
+                        {issue.commentsCount}
+                    </span>
                 )}
             </div>
 
-            {showComments && (
+            {!isAuthenticated ? (
+                <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-blue-900 font-medium mb-2">Sign in to view and add comments</p>
+                    <p className="text-sm text-blue-800 mb-3">
+                        Authenticate with your GitHub account to participate in discussions.
+                    </p>
+                    <button
+                        onClick={onAuthRequired}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    >
+                        Authenticate with GitHub
+                    </button>
+                </div>
+            ) : showComments && (
                 <>
                     {loading ? (
                         <div className="flex items-center justify-center py-12">
