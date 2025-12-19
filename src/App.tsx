@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { FileText, Target, Rocket, CheckSquare } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { FileText, Target, Rocket, CheckSquare, Menu, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import matter from 'gray-matter';
@@ -16,19 +16,20 @@ interface DocItem {
   priority?: string;
 }
 
-// Import all markdown files
-const docFiles = import.meta.glob('../docs/**/*.md', { as: 'raw', eager: true });
+// Import all markdown files from /docs folder
+const docFiles = import.meta.glob('/docs/**/*.md', { as: 'raw', eager: true });
 
 const CATEGORIES = [
-  { id: 'documentation' as Category, label: 'Documentation', icon: FileText, color: 'blue' },
-  { id: 'current-plan' as Category, label: 'Current Plan', icon: Target, color: 'green' },
-  { id: 'future-plans' as Category, label: 'Future Plans', icon: Rocket, color: 'purple' },
-  { id: 'tasks' as Category, label: 'Tasks', icon: CheckSquare, color: 'orange' },
+  { id: 'documentation' as Category, label: 'Documentation', icon: FileText, color: 'bg-gray-700' },
+  { id: 'current-plan' as Category, label: 'Current Plan', icon: Target, color: 'bg-gray-600' },
+  { id: 'future-plans' as Category, label: 'Future Plans', icon: Rocket, color: 'bg-gray-500' },
+  { id: 'tasks' as Category, label: 'Tasks', icon: CheckSquare, color: 'bg-gray-800' },
 ];
 
 function App() {
   const [activeCategory, setActiveCategory] = useState<Category>('documentation');
   const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Parse all markdown files
   const docs = useMemo(() => {
@@ -50,7 +51,6 @@ function App() {
       }
     });
 
-    // Sort by order if available
     return parsedDocs.sort((a, b) => (a.order || 999) - (b.order || 999));
   }, []);
 
@@ -59,77 +59,111 @@ function App() {
   const activeConfig = CATEGORIES.find(c => c.id === activeCategory)!;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Homebase Documentation
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Solo Developer Hub
+              </p>
+            </div>
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+            >
+              {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Category Tabs */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-1 overflow-x-auto py-3">
+            {CATEGORIES.map((cat) => {
+              const Icon = cat.icon;
+              const isActive = activeCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    setActiveCategory(cat.id);
+                    setSelectedDoc(null);
+                  }}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all whitespace-nowrap",
+                    isActive
+                      ? `${cat.color} text-white shadow-lg transform scale-105`
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="text-sm">{cat.label}</span>
+                  <span className={cn(
+                    "px-2 py-0.5 rounded-full text-xs font-semibold",
+                    isActive
+                      ? "bg-white/20 text-white"
+                      : "bg-gray-200 text-gray-600"
+                  )}>
+                    {docs.filter(d => d.category === cat.id).length}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Homebase Documentation
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            Solo Developer Hub: Docs, Plans & Tasks
-          </p>
-        </div>
-
-        {/* Category Tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-          {CATEGORIES.map((cat) => {
-            const Icon = cat.icon;
-            const isActive = activeCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  setActiveCategory(cat.id);
-                  setSelectedDoc(null);
-                }}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap",
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-lg"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {cat.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar - Document List */}
-          <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-                <h2 className="font-semibold text-gray-900 dark:text-white">
+          {/* Sidebar */}
+          <div className={cn(
+            "lg:col-span-1",
+            !sidebarOpen && "hidden lg:block"
+          )}>
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden sticky top-8">
+              <div className={cn(
+                "p-4 border-b border-gray-200",
+                activeConfig.color
+              )}>
+                <h2 className="font-semibold text-white flex items-center gap-2">
+                  {React.createElement(activeConfig.icon, { className: "h-5 w-5" })}
                   {activeConfig.label}
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {filteredDocs.length} {filteredDocs.length === 1 ? 'item' : 'items'}
+                <p className="text-sm text-white/80 mt-1">
+                  {filteredDocs.length} {filteredDocs.length === 1 ? 'document' : 'documents'}
                 </p>
               </div>
-              <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredDocs.map((doc) => (
+              <div className="max-h-[calc(100vh-16rem)] overflow-y-auto">
+                {filteredDocs.map((doc, idx) => (
                   <button
                     key={doc.id}
                     onClick={() => setSelectedDoc(doc.id)}
                     className={cn(
-                      "w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors",
-                      selectedDoc === doc.id && "bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-600"
+                      "w-full text-left px-4 py-3 hover:bg-gray-50 transition-all",
+                      selectedDoc === doc.id && `bg-gray-100 border-l-4`,
+                      idx !== filteredDocs.length - 1 && "border-b border-gray-100"
                     )}
+                    style={selectedDoc === doc.id ? { borderLeftColor: '#374151' } : {}}
                   >
-                    <div className="font-medium text-gray-900 dark:text-white text-sm">
+                    <div className="font-medium text-gray-900 text-sm">
                       {doc.title}
                     </div>
                     {doc.priority && (
                       <span className={cn(
-                        "inline-block mt-1 text-xs px-2 py-0.5 rounded",
-                        doc.priority === 'high' && "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-                        doc.priority === 'medium' && "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                        "inline-block mt-1.5 text-xs px-2 py-0.5 rounded-full font-medium",
+                        doc.priority === 'high' && "bg-red-100 text-red-700",
+                        doc.priority === 'medium' && "bg-yellow-100 text-yellow-700",
+                        doc.priority === 'low' && "bg-green-100 text-green-700"
                       )}>
-                        {doc.priority}
+                        {doc.priority} priority
                       </span>
                     )}
                   </button>
@@ -138,24 +172,49 @@ function App() {
             </div>
           </div>
 
-          {/* Main Content - Markdown Viewer */}
+          {/* Document Viewer */}
           <div className="lg:col-span-3">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
               {activeDoc ? (
-                <div className="p-8">
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-                    {activeDoc.title}
-                  </h1>
-                  <div className="prose prose-lg dark:prose-invert max-w-none">
+                <div className="p-8 lg:p-12">
+                  <div className="mb-8">
+                    <h1 className="text-4xl font-bold text-gray-900 mb-3">
+                      {activeDoc.title}
+                    </h1>
+                    <div className="flex items-center gap-3">
+                      <span className={cn(
+                        "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white",
+                        activeConfig.color
+                      )}>
+                        {React.createElement(activeConfig.icon, { className: "h-3.5 w-3.5" })}
+                        {activeConfig.label}
+                      </span>
+                      {activeDoc.priority && (
+                        <span className={cn(
+                          "px-3 py-1 rounded-full text-xs font-medium",
+                          activeDoc.priority === 'high' && "bg-red-100 text-red-700",
+                          activeDoc.priority === 'medium' && "bg-yellow-100 text-yellow-700"
+                        )}>
+                          {activeDoc.priority} priority
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="prose prose-lg max-w-none prose-headings:font-bold prose-a:text-gray-700 prose-code:text-gray-700 prose-pre:bg-gray-900">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {activeDoc.content}
                     </ReactMarkdown>
                   </div>
                 </div>
               ) : (
-                <div className="p-12 text-center text-gray-400 dark:text-gray-500">
-                  <p className="text-lg">No documents found</p>
-                  <p className="text-sm mt-1">Add markdown files to /docs/{activeCategory}/</p>
+                <div className="p-12 text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                    {React.createElement(activeConfig.icon, { className: "h-8 w-8 text-gray-400" })}
+                  </div>
+                  <p className="text-lg text-gray-500 font-medium">No documents found</p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Add markdown files to <code className="px-2 py-0.5 bg-gray-100 rounded">/docs/{activeCategory}/</code>
+                  </p>
                 </div>
               )}
             </div>
