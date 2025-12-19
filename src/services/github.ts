@@ -18,8 +18,14 @@ export class GitHubService {
     private token: string | null = null;
 
     constructor() {
-        // Load token from localStorage if available
-        this.token = localStorage.getItem('github_token');
+        // Try to load token from environment variable first (build-time)
+        const envToken = import.meta.env.VITE_GITHUB_TOKEN;
+        if (envToken) {
+            this.token = envToken;
+        } else {
+            // Fall back to localStorage (runtime)
+            this.token = localStorage.getItem('github_token');
+        }
     }
 
     /**
