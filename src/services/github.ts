@@ -19,8 +19,8 @@ export class GitHubService {
 
     constructor() {
         // Try to load token from environment variable first (build-time)
-        const envToken = import.meta.env.VITE_GITHUB_TOKEN;
-        if (envToken) {
+        const envToken = import.meta.env.VITE_GITHUB_TOKEN as string | undefined;
+        if (envToken && typeof envToken === 'string') {
             this.token = envToken;
         } else {
             // Fall back to localStorage (runtime)
