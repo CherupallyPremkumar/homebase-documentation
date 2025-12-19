@@ -260,6 +260,138 @@ export class GitHubService {
     }
 
     /**
+     * Get or create an issue for a document (for comments)
+     * Each document gets one issue that serves as its comment thread
+     */
+    async getDocumentIssue(documentTitle: string): Promise<GitHubIssue | null> {
+        if (!this.token) throw new Error('Not authenticated');
+
+        try {
+            // Search for existing issue with this title
+            const searchQuery = `repo:${REPO_OWNER}/${REPO_NAME} is:issue label:documentation "${documentTitle}"`;
+            const response = await fetch(
+                `${GITHUB_API_BASE}/search/issues?q=${encodeURIComponent(searchQuery)}`,
+                { headers: this.getHeaders() }
+            );
+
+            if (!response.ok) {
+                throw new Error(`Failed to search issues: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            if (data.items && data.items.length > 0) {
+                return {
+                    number: data.items[0].number,
+                    title: data.items[0].title,
+                    url: data.items[0].html_url,
+                    commentsCount: data.items[0].comments,
+                };
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Error getting document issue:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Create an issue for a document
+     */
+    async createDocumentIssue(documentTitle: string, documentPath: string): Promise<GitHubIssue> {
+        if (!this.token) throw new Error('Not authenticated');
+
+        try {
+            const response = await fetch(
+                `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/issues`,
+                {
+                    method: 'POST',
+                    headers: this.getHeaders(),
+                    body: JSON.stringify({
+                        title: `Comments: ${documentTitle}`,
+                        body: `This issue is for comments and discussions about the document: **${documentTitle}**\n\nDocument path: \`${documentPath}\`\n\n---\n\nFeel free to leave your comments, questions, or feedback below!`,
+                        labels: ['documentation', 'comments'],
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to create issue');
+            }
+
+            const issue = await response.json();
+            return {
+                number: issue.number,
+                title: issue.title,
+                url: issue.html_url,
+                commentsCount: 0,
+            };
+        } catch (error) {
+            console.error('Error creating document issue:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get comments for an issue
+     */
+    async getIssueComments(issueNumber: number): Promise<GitHubComment[]> {
+        if (!this.token) throw new Error('Not authenticated');
+
+        try {
+            const response = await fetch(
+                `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/issues/${issueNumber}/comments`,
+                { headers: this.getHeaders() }
+            );
+
+            if (!response.ok) {
+                throw new Error(`Failed to get comments: ${response.statusText}`);
+            }
+
+            const comments = await response.json();
+            return comments.map((comment: any) => ({
+                id: comment.id,
+                body: comment.body,
+                author: comment.user.login,
+                authorAvatar: comment.user.avatar_url,
+                createdAt: comment.created_at,
+                updatedAt: comment.updated_at,
+                url: comment.html_url,
+            }));
+        } catch (error) {
+            console.error('Error getting comments:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Add a comment to an issue
+     */
+    async addComment(issueNumber: number, body: string): Promise<void> {
+        if (!this.token) throw new Error('Not authenticated');
+
+        try {
+            const response = await fetch(
+                `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/issues/${issueNumber}/comments`,
+                {
+                    method: 'POST',
+                    headers: this.getHeaders(),
+                    body: JSON.stringify({ body }),
+                }
+            );
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to add comment');
+            }
+        } catch (error) {
+            console.error('Error adding comment:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Get headers for GitHub API requests
      */
     private getHeaders(): HeadersInit {
@@ -269,6 +401,23 @@ export class GitHubService {
             'Content-Type': 'application/json',
         };
     }
+}
+
+export interface GitHubIssue {
+    number: number;
+    title: string;
+    url: string;
+    commentsCount: number;
+}
+
+export interface GitHubComment {
+    id: number;
+    body: string;
+    author: string;
+    authorAvatar: string;
+    createdAt: string;
+    updatedAt: string;
+    url: string;
 }
 
 export interface GitHubCommit {

@@ -108,6 +108,8 @@ function App() {
             onEdit={(doc) => documentOps.handleEditDocument(doc, setEditingDoc, setShowEditorModal)}
             onDelete={documentOps.handleDeleteDocument}
             onViewHistory={handleViewHistory}
+            isAuthenticated={isAuthenticated}
+            onAuthRequired={() => setShowAuthModal(true)}
           />
         </div>
       </div>

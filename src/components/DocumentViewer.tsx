@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 import { PlantUMLDiagram } from './PlantUMLDiagram';
+import { CommentsSection } from './CommentsSection';
 import type { DocItem, CategoryConfig } from '@/types';
 
 interface DocumentViewerProps {
@@ -12,6 +13,8 @@ interface DocumentViewerProps {
     onEdit: (doc: DocItem) => void;
     onDelete: (doc: DocItem) => void;
     onViewHistory: (doc: DocItem) => void;
+    isAuthenticated: boolean;
+    onAuthRequired: () => void;
 }
 
 export function DocumentViewer({
@@ -20,6 +23,8 @@ export function DocumentViewer({
     onEdit,
     onDelete,
     onViewHistory,
+    isAuthenticated,
+    onAuthRequired,
 }: DocumentViewerProps) {
     if (!document) {
         return (
@@ -152,6 +157,14 @@ export function DocumentViewer({
                             {document.content}
                         </ReactMarkdown>
                     </div>
+
+                    {/* Comments Section */}
+                    <CommentsSection
+                        documentTitle={document.title}
+                        documentPath={document.id}
+                        isAuthenticated={isAuthenticated}
+                        onAuthRequired={onAuthRequired}
+                    />
                 </div>
             </div>
         </div>
