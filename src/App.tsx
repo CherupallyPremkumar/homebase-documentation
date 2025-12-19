@@ -99,7 +99,7 @@ function App() {
 
       // Get file SHA
       const file = await githubService.getFile(path);
-      if (!file) {
+      if (!file || !file.sha) {
         alert('File not found');
         return;
       }
@@ -123,7 +123,7 @@ function App() {
         // Update existing file
         const existingPath = editingDoc.id.replace('/public/', '');
         const file = await githubService.getFile(existingPath);
-        if (!file) {
+        if (!file || !file.sha) {
           alert('File not found');
           return;
         }
