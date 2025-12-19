@@ -20,7 +20,7 @@ export function CategoryTabs({
 }: CategoryTabsProps) {
     return (
         <div className="bg-white border-b border-gray-200">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex gap-1 overflow-x-auto py-3">
                     {categories.map((cat) => {
                         const Icon = cat.icon;
