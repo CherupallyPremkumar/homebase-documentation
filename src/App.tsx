@@ -1,9 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { FileText, Target, Rocket, CheckSquare, Menu, X } from 'lucide-react';
+import { FileText, Target, Rocket, CheckSquare, Menu, X, Plus, Edit2, Trash2, Key, LogOut } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import matter from 'gray-matter';
 import { cn } from '@/lib/utils';
+import { githubService } from './services/github';
+import { AuthModal } from './components/AuthModal';
+import { EditorModal } from './components/EditorModal';
 
 type Category = 'documentation' | 'current-plan' | 'future-plans' | 'tasks';
 
@@ -30,6 +33,10 @@ function App() {
   const [activeCategory, setActiveCategory] = useState<Category>('documentation');
   const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(githubService.isAuthenticated());
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showEditorModal, setShowEditorModal] = useState(false);
+  const [editingDoc, setEditingDoc] = useState<DocItem | null>(null);
 
   // Parse all markdown files
   const docs = useMemo(() => {
@@ -58,6 +65,87 @@ function App() {
   const activeDoc = selectedDoc ? docs.find(d => d.id === selectedDoc) : filteredDocs[0];
   const activeConfig = CATEGORIES.find(c => c.id === activeCategory)!;
 
+  const handleNewDocument = () => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+    setEditingDoc(null);
+    setShowEditorModal(true);
+  };
+
+  const handleEditDocument = (doc: DocItem) => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+    setEditingDoc(doc);
+    setShowEditorModal(true);
+  };
+
+  const handleDeleteDocument = async (doc: DocItem) => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete "${doc.title}"? This cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      // Extract path from doc.id (remove /public/ prefix)
+      const path = doc.id.replace('/public/', '');
+
+      // Get file SHA
+      const file = await githubService.getFile(path);
+      if (!file) {
+        alert('File not found');
+        return;
+      }
+
+      await githubService.deleteFile(path, file.sha, `Delete ${doc.title}`);
+      alert('Document deleted! The page will reload in 3 seconds to show the changes.');
+      setTimeout(() => window.location.reload(), 3000);
+    } catch (error) {
+      console.error('Delete failed:', error);
+      alert('Failed to delete document. Please try again.');
+    }
+  };
+
+  const handleSaveDocument = async (content: string, commitMessage: string) => {
+    try {
+      const { data } = matter(content);
+      const filename = data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.md';
+      const path = `public/docs/${activeCategory}/${filename}`;
+
+      if (editingDoc) {
+        // Update existing file
+        const existingPath = editingDoc.id.replace('/public/', '');
+        const file = await githubService.getFile(existingPath);
+        if (!file) {
+          alert('File not found');
+          return;
+        }
+        await githubService.updateFile(existingPath, content, file.sha, commitMessage);
+      } else {
+        // Create new file
+        await githubService.createFile(path, content, commitMessage);
+      }
+
+      alert('Document saved! The page will reload in 3 seconds to show the changes.');
+      setTimeout(() => window.location.reload(), 3000);
+    } catch (error) {
+      console.error('Save failed:', error);
+      throw error;
+    }
+  };
+
+  const handleLogout = () => {
+    githubService.clearToken();
+    setIsAuthenticated(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -72,12 +160,31 @@ function App() {
                 Solo Developer Hub
               </p>
             </div>
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
-            >
-              {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+            <div className="flex items-center gap-2">
+              {isAuthenticated ? (
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-800 text-white hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <Key className="h-4 w-4" />
+                  Authenticate
+                </button>
+              )}
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+              >
+                {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -116,6 +223,13 @@ function App() {
                 </button>
               );
             })}
+            <button
+              onClick={handleNewDocument}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all whitespace-nowrap bg-green-600 text-white hover:bg-green-700 ml-auto"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="text-sm">New</span>
+            </button>
           </div>
         </div>
       </div>
@@ -178,9 +292,27 @@ function App() {
               {activeDoc ? (
                 <div className="p-8 lg:p-12">
                   <div className="mb-8">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-3">
-                      {activeDoc.title}
-                    </h1>
+                    <div className="flex items-start justify-between mb-3">
+                      <h1 className="text-4xl font-bold text-gray-900 flex-1">
+                        {activeDoc.title}
+                      </h1>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => handleEditDocument(activeDoc)}
+                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Edit document"
+                        >
+                          <Edit2 className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDocument(activeDoc)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete document"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-3">
                       <span className={cn(
                         "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white",
@@ -213,7 +345,7 @@ function App() {
                   </div>
                   <p className="text-lg text-gray-500 font-medium">No documents found</p>
                   <p className="text-sm text-gray-400 mt-1">
-                    Add markdown files to <code className="px-2 py-0.5 bg-gray-100 rounded">/docs/{activeCategory}/</code>
+                    Click "New" to create your first document
                   </p>
                 </div>
               )}
@@ -221,6 +353,29 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onAuthenticated={() => setIsAuthenticated(true)}
+      />
+      <EditorModal
+        isOpen={showEditorModal}
+        onClose={() => {
+          setShowEditorModal(false);
+          setEditingDoc(null);
+        }}
+        onSave={handleSaveDocument}
+        initialContent={editingDoc ? matter.stringify(editingDoc.content, {
+          title: editingDoc.title,
+          category: editingDoc.category,
+          order: editingDoc.order,
+          priority: editingDoc.priority,
+        }) : ''}
+        category={activeCategory}
+        title={editingDoc?.title || 'New Document'}
+      />
     </div>
   );
 }
