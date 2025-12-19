@@ -73,6 +73,22 @@ export function AuthModal({ isOpen, onClose, onAuthenticated }: AuthModalProps) 
                         </p>
                     </div>
 
+                    <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 mb-4">
+                        <p className="text-sm font-bold text-green-900 mb-2">🌟 Collaborative Documentation</p>
+                        <p className="text-sm text-green-800">
+                            Anyone can contribute! Authenticate with your GitHub account to:
+                        </p>
+                        <ul className="text-sm text-green-800 mt-2 space-y-1 list-disc list-inside">
+                            <li>Edit and improve existing documents</li>
+                            <li>Create new documentation</li>
+                            <li>Add comments and discussions</li>
+                            <li>Upload images and diagrams</li>
+                        </ul>
+                        <p className="text-xs text-green-700 mt-2 italic">
+                            All changes are tracked via GitHub commits with your name!
+                        </p>
+                    </div>
+
                     {error && (
                         <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                             <p className="text-sm text-red-700">{error}</p>
@@ -80,7 +96,7 @@ export function AuthModal({ isOpen, onClose, onAuthenticated }: AuthModalProps) 
                     )}
 
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p className="text-sm text-blue-900 font-medium mb-2">How to get a token:</p>
+                        <p className="text-sm text-blue-900 font-medium mb-2">How to get your GitHub token:</p>
                         <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
                             <li>Go to GitHub Settings → Developer settings</li>
                             <li>Click "Personal access tokens" → "Tokens (classic)"</li>
@@ -88,7 +104,7 @@ export function AuthModal({ isOpen, onClose, onAuthenticated }: AuthModalProps) 
                             <li>Copy and paste the token here</li>
                         </ol>
                         <a
-                            href="https://github.com/settings/tokens/new?scopes=repo&description=Homebase%20Documentation"
+                            href="https://github.com/settings/tokens/new?scopes=repo&description=Homebase%20Documentation%20Contributor"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 mt-3 text-sm text-blue-600 hover:text-blue-700 font-medium"

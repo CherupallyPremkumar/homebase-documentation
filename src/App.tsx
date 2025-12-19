@@ -9,6 +9,7 @@ import { Sidebar } from './components/Sidebar';
 import { DocumentViewer } from './components/DocumentViewer';
 import { SearchModal } from './components/SearchModal';
 import { VersionHistoryModal } from './components/VersionHistoryModal';
+import { CollaborativeBanner } from './components/CollaborativeBanner';
 import { useDocuments } from './hooks/useDocuments';
 import { useDocumentOperations } from './hooks/useDocumentOperations';
 import { CATEGORIES } from './constants/categories';
@@ -93,6 +94,10 @@ function App() {
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <CollaborativeBanner
+          onAuthClick={() => setShowAuthModal(true)}
+          isAuthenticated={isAuthenticated}
+        />
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <Sidebar
             documents={filteredDocs}
