@@ -36,8 +36,18 @@ export function VersionHistoryModal({
     const loadCommits = async () => {
         setLoading(true);
         try {
-            // Remove leading '../public/' or similar prefixes
-            const cleanPath = documentPath.replace(/^\.\.\//, '').replace(/^public\//, '');
+            // Document path comes from import.meta.glob like: '../public/docs/documentation/file.md'
+            // We need to convert it to: 'src/docs/documentation/file.md' for GitHub API
+            let cleanPath = documentPath;
+
+            // Remove '../public/docs/' and replace with 'src/docs/'
+            if (cleanPath.includes('../public/docs/')) {
+                cleanPath = cleanPath.replace('../public/docs/', 'src/docs/');
+            } else if (cleanPath.includes('public/docs/')) {
+                cleanPath = cleanPath.replace('public/docs/', 'src/docs/');
+            }
+
+            console.log('Loading commits for path:', cleanPath);
             const history = await githubService.getFileCommits(cleanPath);
             setCommits(history);
         } catch (error) {
@@ -52,7 +62,14 @@ export function VersionHistoryModal({
         setSelectedCommit(commit.sha);
         setLoadingContent(true);
         try {
-            const cleanPath = documentPath.replace(/^\.\.\//, '').replace(/^public\//, '');
+            let cleanPath = documentPath;
+
+            if (cleanPath.includes('../public/docs/')) {
+                cleanPath = cleanPath.replace('../public/docs/', 'src/docs/');
+            } else if (cleanPath.includes('public/docs/')) {
+                cleanPath = cleanPath.replace('public/docs/', 'src/docs/');
+            }
+
             const content = await githubService.getFileAtCommit(cleanPath, commit.sha);
             setVersionContent(content);
         } catch (error) {
