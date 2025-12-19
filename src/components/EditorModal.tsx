@@ -24,6 +24,7 @@ export function EditorModal({
     title: initialTitle = '',
 }: EditorModalProps) {
     const [title, setTitle] = useState(initialTitle);
+    const [folder, setFolder] = useState('');
     const [content, setContent] = useState('');
     const [order, setOrder] = useState('');
     const [priority, setPriority] = useState('');
@@ -38,11 +39,13 @@ export function EditorModal({
         if (initialContent) {
             const { data, content: markdown } = matter(initialContent);
             setTitle(data.title || initialTitle);
+            setFolder(data.folder || '');
             setContent(markdown);
             setOrder(data.order?.toString() || '');
             setPriority(data.priority || '');
         } else {
             setTitle(initialTitle);
+            setFolder('');
             setContent('');
             setOrder('');
             setPriority('');
@@ -133,6 +136,7 @@ export function EditorModal({
                 title,
                 category,
             };
+            if (folder) frontmatter.folder = folder;
             if (order) frontmatter.order = parseInt(order);
             if (priority) frontmatter.priority = priority;
 
@@ -191,6 +195,21 @@ export function EditorModal({
                                     disabled
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
                                 />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Folder/Subfolder (optional)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={folder}
+                                    onChange={(e) => setFolder(e.target.value)}
+                                    placeholder="e.g., architecture/backend"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                                />
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Leave empty for root, or use slashes for nested folders
+                                </p>
                             </div>
                         </div>
 

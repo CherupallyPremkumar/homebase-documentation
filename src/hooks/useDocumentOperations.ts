@@ -70,7 +70,10 @@ export function useDocumentOperations(
         try {
             const { data } = matter(content);
             const filename = data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.md';
-            const path = `src/docs/${activeCategory}/${filename}`;
+
+            // Build path with folder if specified
+            const folderPath = data.folder ? `${data.folder}/` : '';
+            const path = `src/docs/${activeCategory}/${folderPath}${filename}`;
 
             if (editingDoc) {
                 // Update existing file
