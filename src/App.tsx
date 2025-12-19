@@ -8,6 +8,7 @@ import { CategoryTabs } from './components/CategoryTabs';
 import { Sidebar } from './components/Sidebar';
 import { DocumentViewer } from './components/DocumentViewer';
 import { SearchModal } from './components/SearchModal';
+import { VersionHistoryModal } from './components/VersionHistoryModal';
 import { useDocuments } from './hooks/useDocuments';
 import { useDocumentOperations } from './hooks/useDocumentOperations';
 import { CATEGORIES } from './constants/categories';
@@ -22,6 +23,8 @@ function App() {
   const [showEditorModal, setShowEditorModal] = useState(false);
   const [editingDoc, setEditingDoc] = useState<DocItem | null>(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [versionHistoryDoc, setVersionHistoryDoc] = useState<DocItem | null>(null);
 
   const docs = useDocuments();
   const documentOps = useDocumentOperations(
@@ -65,6 +68,11 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const handleViewHistory = (doc: DocItem) => {
+    setVersionHistoryDoc(doc);
+    setShowVersionHistory(true);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
@@ -99,6 +107,7 @@ function App() {
             categoryConfig={activeConfig}
             onEdit={(doc) => documentOps.handleEditDocument(doc, setEditingDoc, setShowEditorModal)}
             onDelete={documentOps.handleDeleteDocument}
+            onViewHistory={handleViewHistory}
           />
         </div>
       </div>
@@ -133,6 +142,13 @@ function App() {
         onClose={() => setShowSearchModal(false)}
         documents={docs}
         onSelectDocument={handleSelectDocument}
+      />
+
+      <VersionHistoryModal
+        isOpen={showVersionHistory}
+        onClose={() => setShowVersionHistory(false)}
+        documentPath={versionHistoryDoc?.id || ''}
+        documentTitle={versionHistoryDoc?.title || ''}
       />
     </div>
   );

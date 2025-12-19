@@ -206,6 +206,60 @@ export class GitHubService {
     }
 
     /**
+     * Get commit history for a file
+     */
+    async getFileCommits(path: string): Promise<GitHubCommit[]> {
+        if (!this.token) throw new Error('Not authenticated');
+
+        try {
+            const response = await fetch(
+                `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/commits?path=${path}&sha=${BRANCH}`,
+                { headers: this.getHeaders() }
+            );
+
+            if (!response.ok) {
+                throw new Error(`Failed to get commits: ${response.statusText}`);
+            }
+
+            const commits = await response.json();
+            return commits.map((commit: any) => ({
+                sha: commit.sha,
+                message: commit.commit.message,
+                author: commit.commit.author.name,
+                date: commit.commit.author.date,
+                url: commit.html_url,
+            }));
+        } catch (error) {
+            console.error('Error getting file commits:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get file content at a specific commit
+     */
+    async getFileAtCommit(path: string, sha: string): Promise<string> {
+        if (!this.token) throw new Error('Not authenticated');
+
+        try {
+            const response = await fetch(
+                `${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}?ref=${sha}`,
+                { headers: this.getHeaders() }
+            );
+
+            if (!response.ok) {
+                throw new Error(`Failed to get file at commit: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return atob(data.content); // Decode base64
+        } catch (error) {
+            console.error('Error getting file at commit:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Get headers for GitHub API requests
      */
     private getHeaders(): HeadersInit {
@@ -215,6 +269,14 @@ export class GitHubService {
             'Content-Type': 'application/json',
         };
     }
+}
+
+export interface GitHubCommit {
+    sha: string;
+    message: string;
+    author: string;
+    date: string;
+    url: string;
 }
 
 // Export singleton instance

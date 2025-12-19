@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2, Clock } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,7 @@ interface DocumentViewerProps {
     categoryConfig: CategoryConfig;
     onEdit: (doc: DocItem) => void;
     onDelete: (doc: DocItem) => void;
+    onViewHistory: (doc: DocItem) => void;
 }
 
 export function DocumentViewer({
@@ -18,6 +19,7 @@ export function DocumentViewer({
     categoryConfig,
     onEdit,
     onDelete,
+    onViewHistory,
 }: DocumentViewerProps) {
     if (!document) {
         return (
@@ -53,6 +55,13 @@ export function DocumentViewer({
                                     title="Edit document"
                                 >
                                     <Edit2 className="h-5 w-5" />
+                                </button>
+                                <button
+                                    onClick={() => onViewHistory(document)}
+                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                    title="View version history"
+                                >
+                                    <Clock className="h-5 w-5" />
                                 </button>
                                 <button
                                     onClick={() => onDelete(document)}
