@@ -1,89 +1,23 @@
-import { useState, useEffect } from 'react';
-import { Plus, Trash2, Check, FileText, Target, Rocket, CheckSquare } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { FileText, Target, Rocket, CheckSquare } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import matter from 'gray-matter';
 import { cn } from '@/lib/utils';
 
 type Category = 'documentation' | 'current-plan' | 'future-plans' | 'tasks';
 
-interface Todo {
+interface DocItem {
   id: string;
-  text: string;
-  completed: boolean;
-  createdAt: number;
+  title: string;
   category: Category;
+  content: string;
+  order?: number;
+  priority?: string;
 }
 
-const SEED_ITEMS: Todo[] = [
-  // Documentation
-  {
-    id: 'doc-1',
-    text: '📦 Package Management: Using Git URL dependencies (v1.0.0) for @homebase/shared',
-    completed: false,
-    createdAt: Date.now() - 1000,
-    category: 'documentation',
-  },
-  {
-    id: 'doc-2',
-    text: '🏗️ Architecture: Modular Monolith with Chenile Framework (Java backend)',
-    completed: false,
-    createdAt: Date.now() - 2000,
-    category: 'documentation',
-  },
-  {
-    id: 'doc-3',
-    text: '⚛️ Frontend Stack: React + TypeScript + Tailwind CSS',
-    completed: false,
-    createdAt: Date.now() - 3000,
-    category: 'documentation',
-  },
-
-  // Current Plan
-  {
-    id: 'current-1',
-    text: '🛠️ Building product management module with variants and pricing',
-    completed: false,
-    createdAt: Date.now() - 4000,
-    category: 'current-plan',
-  },
-  {
-    id: 'current-2',
-    text: '🎨 Developing user-facing e-commerce UI (homebase-user-ui)',
-    completed: false,
-    createdAt: Date.now() - 5000,
-    category: 'current-plan',
-  },
-
-  // Future Plans
-  {
-    id: 'future-1',
-    text: '📦 Phase 2: Migrate to GitHub Packages for dependency management',
-    completed: false,
-    createdAt: Date.now() - 6000,
-    category: 'future-plans',
-  },
-  {
-    id: 'future-2',
-    text: '🏗️ Phase 3: Evaluate Monorepo (Turborepo/Nx) when team grows',
-    completed: false,
-    createdAt: Date.now() - 7000,
-    category: 'future-plans',
-  },
-  {
-    id: 'future-3',
-    text: '📝 Document API contracts between frontend and backend',
-    completed: false,
-    createdAt: Date.now() - 8000,
-    category: 'future-plans',
-  },
-
-  // Tasks
-  {
-    id: 'task-1',
-    text: 'Fix CI build for homebase-user-ui',
-    completed: true,
-    createdAt: Date.now() - 9000,
-    category: 'tasks',
-  },
-];
+// Import all markdown files
+const docFiles = import.meta.glob('../docs/**/*.md', { as: 'raw', eager: true });
 
 const CATEGORIES = [
   { id: 'documentation' as Category, label: 'Documentation', icon: FileText, color: 'blue' },
@@ -93,52 +27,41 @@ const CATEGORIES = [
 ];
 
 function App() {
-  const [activeCategory, setActiveCategory] = useState<Category>('tasks');
-  const [todos, setTodos] = useState<Todo[]>(() => {
-    const saved = localStorage.getItem('homebase-items');
-    if (saved) {
-      return JSON.parse(saved);
-    }
-    return SEED_ITEMS;
-  });
-  const [inputValue, setInputValue] = useState('');
+  const [activeCategory, setActiveCategory] = useState<Category>('documentation');
+  const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
 
-  useEffect(() => {
-    localStorage.setItem('homebase-items', JSON.stringify(todos));
-  }, [todos]);
+  // Parse all markdown files
+  const docs = useMemo(() => {
+    const parsedDocs: DocItem[] = [];
 
-  const addTodo = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
+    Object.entries(docFiles).forEach(([path, content]) => {
+      const { data, content: markdown } = matter(content);
+      const category = data.category as Category;
 
-    const newTodo: Todo = {
-      id: crypto.randomUUID(),
-      text: inputValue.trim(),
-      completed: false,
-      createdAt: Date.now(),
-      category: activeCategory,
-    };
+      if (category) {
+        parsedDocs.push({
+          id: path,
+          title: data.title || path.split('/').pop()?.replace('.md', '') || 'Untitled',
+          category,
+          content: markdown,
+          order: data.order,
+          priority: data.priority,
+        });
+      }
+    });
 
-    setTodos([newTodo, ...todos]);
-    setInputValue('');
-  };
+    // Sort by order if available
+    return parsedDocs.sort((a, b) => (a.order || 999) - (b.order || 999));
+  }, []);
 
-  const toggleTodo = (id: string) => {
-    setTodos(todos.map(todo =>
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    ));
-  };
-
-  const deleteTodo = (id: string) => {
-    setTodos(todos.filter(todo => todo.id !== id));
-  };
-
-  const filteredTodos = todos.filter(todo => todo.category === activeCategory);
+  const filteredDocs = docs.filter(doc => doc.category === activeCategory);
+  const activeDoc = selectedDoc ? docs.find(d => d.id === selectedDoc) : filteredDocs[0];
   const activeConfig = CATEGORIES.find(c => c.id === activeCategory)!;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
             Homebase Documentation
@@ -156,7 +79,10 @@ function App() {
             return (
               <button
                 key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
+                onClick={() => {
+                  setActiveCategory(cat.id);
+                  setSelectedDoc(null);
+                }}
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap",
                   isActive
@@ -171,82 +97,68 @@ function App() {
           })}
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700">
-          <div className="p-6 border-b border-gray-100 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
-            <form onSubmit={addTodo} className="relative">
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder={`Add to ${activeConfig.label}...`}
-                className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-all duration-200 placeholder:text-gray-400"
-              />
-              <button
-                type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-            </form>
-          </div>
-
-          <div className="max-h-[60vh] overflow-y-auto">
-            {filteredTodos.length === 0 ? (
-              <div className="p-12 text-center text-gray-400 dark:text-gray-500">
-                <p className="text-lg">No items yet</p>
-                <p className="text-sm mt-1">Add your first {activeConfig.label.toLowerCase()} item</p>
+        {/* Content Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar - Document List */}
+          <div className="lg:col-span-1">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                <h2 className="font-semibold text-gray-900 dark:text-white">
+                  {activeConfig.label}
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {filteredDocs.length} {filteredDocs.length === 1 ? 'item' : 'items'}
+                </p>
               </div>
-            ) : (
-              <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                {filteredTodos.map((todo) => (
-                  <li
-                    key={todo.id}
-                    className="group flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200"
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredDocs.map((doc) => (
+                  <button
+                    key={doc.id}
+                    onClick={() => setSelectedDoc(doc.id)}
+                    className={cn(
+                      "w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors",
+                      selectedDoc === doc.id && "bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-600"
+                    )}
                   >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <button
-                        onClick={() => toggleTodo(todo.id)}
-                        className={cn(
-                          "flex-shrink-0 w-5 h-5 rounded border flex items-center justify-center transition-all duration-200",
-                          todo.completed
-                            ? "bg-indigo-600 border-indigo-600 text-white"
-                            : "border-gray-300 dark:border-gray-500 hover:border-indigo-500 text-transparent"
-                        )}
-                      >
-                        <Check className="h-3 w-3" />
-                      </button>
-                      <span
-                        className={cn(
-                          "text-gray-900 dark:text-gray-100 transition-all duration-200",
-                          todo.completed && "text-gray-400 dark:text-gray-500 line-through"
-                        )}
-                      >
-                        {todo.text}
-                      </span>
+                    <div className="font-medium text-gray-900 dark:text-white text-sm">
+                      {doc.title}
                     </div>
-                    <button
-                      onClick={() => deleteTodo(todo.id)}
-                      className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 transition-all duration-200 focus:opacity-100"
-                      aria-label="Delete item"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </li>
+                    {doc.priority && (
+                      <span className={cn(
+                        "inline-block mt-1 text-xs px-2 py-0.5 rounded",
+                        doc.priority === 'high' && "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+                        doc.priority === 'medium' && "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                      )}>
+                        {doc.priority}
+                      </span>
+                    )}
+                  </button>
                 ))}
-              </ul>
-            )}
+              </div>
+            </div>
           </div>
 
-          <div className="bg-gray-50 dark:bg-gray-900/50 p-4 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-500 flex justify-between items-center">
-            <span>{filteredTodos.filter(t => !t.completed).length} items left</span>
-            {filteredTodos.some(t => t.completed) && (
-              <button
-                onClick={() => setTodos(todos.filter(t => t.category !== activeCategory || !t.completed))}
-                className="hover:text-gray-900 dark:hover:text-gray-300 transition-colors"
-              >
-                Clear completed
-              </button>
-            )}
+          {/* Main Content - Markdown Viewer */}
+          <div className="lg:col-span-3">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+              {activeDoc ? (
+                <div className="p-8">
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+                    {activeDoc.title}
+                  </h1>
+                  <div className="prose prose-lg dark:prose-invert max-w-none">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {activeDoc.content}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-12 text-center text-gray-400 dark:text-gray-500">
+                  <p className="text-lg">No documents found</p>
+                  <p className="text-sm mt-1">Add markdown files to /docs/{activeCategory}/</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
