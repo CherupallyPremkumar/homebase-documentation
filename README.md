@@ -1,73 +1,78 @@
-# React + TypeScript + Vite
+# Homebase Documentation
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **Solo Developer Hub** for the Homebase E-commerce Project  
+> Live at: [docs.premkumar.me](https://docs.premkumar.me)
 
-Currently, two official plugins are available:
+## 🎯 Purpose
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+A centralized documentation and task management system designed for solo developers working on complex projects. This app helps you organize:
 
-## React Compiler
+- 📝 **Documentation** - Technical decisions and architecture notes
+- 🎯 **Current Plan** - Active work and immediate priorities  
+- 🚀 **Future Plans** - Roadmap and upcoming features
+- ✅ **Tasks** - Day-to-day todos and action items
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🏗️ Tech Stack
 
-## Expanding the ESLint configuration
+- **Frontend:** React 19 + TypeScript
+- **Styling:** Tailwind CSS v4 + Tailwind Vite Plugin
+- **Icons:** Lucide React
+- **Storage:** localStorage (client-side persistence)
+- **Deployment:** GitHub Pages
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚀 Getting Started
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```bash
+# Install dependencies
+npm install
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+# Run development server
+npm run dev
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Build for production
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 📦 Project Structure
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+homebase-documentation/
+├── src/
+│   ├── App.tsx           # Main app with category system
+│   ├── lib/utils.ts      # Utility functions (cn)
+│   └── index.css         # Global styles + Tailwind
+├── public/
+│   └── CNAME             # Custom domain config
+├── .github/workflows/
+│   └── deploy.yml        # GitHub Pages deployment
+└── ARCHITECTURE.md       # Package management roadmap
+```
+
+## 🎨 Features
+
+- **Category System:** Switch between Documentation, Current Plan, Future Plans, and Tasks
+- **Persistent Storage:** All items saved to localStorage
+- **Dark Mode Support:** Respects system preferences
+- **Responsive Design:** Works on all screen sizes
+- **Auto-Deploy:** Pushes to GitHub Pages on every commit
+
+## 📚 Related Projects
+
+- [homebase-user-ui](https://github.com/CherupallyPremkumar/homebase-user-ui) - Customer-facing e-commerce UI
+- [homebase-shared](https://github.com/CherupallyPremkumar/homebase-shared) - Shared code between frontend apps
+- [handmade](https://github.com/CherupallyPremkumar/handmade-backend) - Java backend (Modular Monolith)
+
+## 🔧 Architecture Decisions
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the package management evolution strategy:
+- **Phase 1 (Current):** Git URL dependencies
+- **Phase 2 (Future):** GitHub Packages
+- **Phase 3 (Long-term):** Monorepo with Turborepo/Nx
+
+## 📄 License
+
+MIT
+
+---
+
+**Built with ❤️ by a solo developer managing a full-stack e-commerce platform**
