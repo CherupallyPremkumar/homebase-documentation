@@ -29,6 +29,8 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+      - name: Add .nojekyll file
+        run: touch dist/.nojekyll
       - name: Create 404 page
         run: cp dist/index.html dist/404.html
       - name: Upload artifact
