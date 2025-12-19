@@ -82,30 +82,30 @@ export function DocumentViewer({
                             )}
                         </div>
                     </div>
-                    <div className="prose prose-xl max-w-none 
-                        prose-headings:font-bold prose-headings:text-gray-900 prose-headings:tracking-tight
-                        prose-h1:text-5xl prose-h1:mb-6 prose-h1:mt-0 prose-h1:leading-tight
-                        prose-h2:text-3xl prose-h2:mb-6 prose-h2:mt-12 prose-h2:pb-3 prose-h2:border-b-2 prose-h2:border-gray-300
-                        prose-h3:text-2xl prose-h3:mb-4 prose-h3:mt-8 prose-h3:text-gray-800
-                        prose-h4:text-xl prose-h4:mb-3 prose-h4:mt-6 prose-h4:text-gray-700
-                        prose-p:text-gray-700 prose-p:leading-loose prose-p:mb-6 prose-p:text-lg
-                        prose-a:text-blue-600 prose-a:font-medium prose-a:no-underline hover:prose-a:underline hover:prose-a:text-blue-700
-                        prose-strong:text-gray-900 prose-strong:font-bold
-                        prose-em:text-gray-800 prose-em:italic
-                        prose-code:text-pink-600 prose-code:bg-pink-50 prose-code:px-2 prose-code:py-1 prose-code:rounded-md prose-code:text-base prose-code:font-mono prose-code:font-medium prose-code:before:content-[''] prose-code:after:content-['']
-                        prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:p-6 prose-pre:rounded-xl prose-pre:overflow-x-auto prose-pre:shadow-xl prose-pre:my-8 prose-pre:border prose-pre:border-gray-700
-                        prose-ul:my-6 prose-ul:space-y-3
-                        prose-ol:my-6 prose-ol:space-y-3
-                        prose-li:text-gray-700 prose-li:leading-loose prose-li:text-lg prose-li:pl-2
-                        prose-li>p:my-2
-                        prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50 prose-blockquote:pl-6 prose-blockquote:pr-4 prose-blockquote:py-4 prose-blockquote:my-8 prose-blockquote:italic prose-blockquote:text-gray-700 prose-blockquote:rounded-r-lg
-                        prose-img:rounded-xl prose-img:shadow-lg prose-img:my-8
-                        prose-table:border-collapse prose-table:w-full prose-table:my-8 prose-table:shadow-md prose-table:rounded-lg prose-table:overflow-hidden
-                        prose-thead:bg-gray-800
-                        prose-th:bg-gray-800 prose-th:text-white prose-th:p-4 prose-th:text-left prose-th:font-bold prose-th:text-base prose-th:border-b-2 prose-th:border-gray-600
-                        prose-td:p-4 prose-td:border-b prose-td:border-gray-200 prose-td:text-gray-700
-                        prose-tr:hover:bg-gray-50
-                        prose-hr:border-gray-300 prose-hr:my-12 prose-hr:border-t-2">
+                    <div className="prose prose-lg max-w-none
+                        prose-headings:font-bold prose-headings:text-gray-900
+                        prose-h1:text-4xl prose-h1:mb-4 prose-h1:mt-0 prose-h1:pb-3 prose-h1:border-b-4 prose-h1:border-green-600
+                        prose-h2:text-3xl prose-h2:mb-4 prose-h2:mt-8 prose-h2:text-gray-800 prose-h2:border-l-4 prose-h2:border-green-600 prose-h2:pl-4 prose-h2:bg-green-50 prose-h2:py-2 prose-h2:rounded-r
+                        prose-h3:text-2xl prose-h3:mb-3 prose-h3:mt-6 prose-h3:text-gray-800 prose-h3:border-l-4 prose-h3:border-green-500 prose-h3:pl-3
+                        prose-h4:text-xl prose-h4:mb-2 prose-h4:mt-5 prose-h4:text-gray-700 prose-h4:font-semibold
+                        prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4 prose-p:text-base
+                        prose-a:text-green-600 prose-a:font-medium prose-a:no-underline hover:prose-a:underline hover:prose-a:text-green-700
+                        prose-strong:text-gray-900 prose-strong:font-bold prose-strong:bg-yellow-100 prose-strong:px-1
+                        prose-em:text-gray-800 prose-em:not-italic prose-em:font-semibold
+                        prose-code:text-red-600 prose-code:bg-gray-100 prose-code:px-2 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:border prose-code:border-gray-300 prose-code:before:content-[''] prose-code:after:content-['']
+                        prose-pre:bg-gray-50 prose-pre:text-gray-900 prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto prose-pre:my-6 prose-pre:border-2 prose-pre:border-gray-300 prose-pre:shadow-sm
+                        prose-ul:my-4 prose-ul:space-y-2 prose-ul:list-disc prose-ul:pl-6
+                        prose-ol:my-4 prose-ol:space-y-2 prose-ol:list-decimal prose-ol:pl-6
+                        prose-li:text-gray-700 prose-li:leading-relaxed prose-li:text-base prose-li:marker:text-green-600
+                        prose-li>p:my-1
+                        prose-blockquote:border-l-4 prose-blockquote:border-yellow-500 prose-blockquote:bg-yellow-50 prose-blockquote:pl-4 prose-blockquote:pr-4 prose-blockquote:py-3 prose-blockquote:my-6 prose-blockquote:not-italic prose-blockquote:text-gray-700 prose-blockquote:rounded-r
+                        prose-img:rounded-lg prose-img:shadow-md prose-img:my-6 prose-img:border prose-img:border-gray-200
+                        prose-table:border-collapse prose-table:w-full prose-table:my-6 prose-table:border prose-table:border-gray-300
+                        prose-thead:bg-green-600
+                        prose-th:bg-green-600 prose-th:text-white prose-th:p-3 prose-th:text-left prose-th:font-bold prose-th:text-sm prose-th:border prose-th:border-green-700
+                        prose-td:p-3 prose-td:border prose-td:border-gray-300 prose-td:text-gray-700 prose-td:text-sm
+                        prose-tr:even:bg-gray-50
+                        prose-hr:border-gray-300 prose-hr:my-8">
                         <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={{
