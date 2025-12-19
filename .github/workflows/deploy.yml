@@ -28,8 +28,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Build
-        env:
-          VITE_GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: npm run build
       - name: Create 404 page
         run: cp dist/index.html dist/404.html
