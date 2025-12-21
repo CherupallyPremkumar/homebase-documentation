@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 import { PlantUMLDiagram } from './PlantUMLDiagram';
 import { CommentsSection } from './CommentsSection';
+import { HabitTracker } from './HabitTracker';
 import type { DocItem, CategoryConfig } from '@/types';
 
 interface DocumentViewerProps {
@@ -96,7 +97,12 @@ export function DocumentViewer({
                             )}
                         </div>
                     </div>
-                    <div className="prose prose-lg max-w-none
+
+                    {/* Show interactive habit tracker for habit-tracker category */}
+                    {document.category === 'habit-tracker' && document.title.toLowerCase().includes('tracker') ? (
+                        <HabitTracker />
+                    ) : (
+                        <div className="prose prose-lg max-w-none
                         prose-headings:font-bold prose-headings:text-gray-900
                         prose-h1:text-4xl prose-h1:mb-4 prose-h1:mt-0 prose-h1:pb-3 prose-h1:border-b-4 prose-h1:border-green-600
                         prose-h2:text-3xl prose-h2:mb-4 prose-h2:mt-8 prose-h2:text-gray-800 prose-h2:border-l-4 prose-h2:border-green-600 prose-h2:pl-4 prose-h2:bg-green-50 prose-h2:py-2 prose-h2:rounded-r
@@ -120,43 +126,44 @@ export function DocumentViewer({
                         prose-td:p-3 prose-td:border prose-td:border-gray-300 prose-td:text-gray-700 prose-td:text-sm
                         prose-tr:even:bg-gray-50
                         prose-hr:border-gray-300 prose-hr:my-8">
-                        <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                                code(props) {
-                                    const { node, inline, className, children, ...rest } = props as any;
-                                    const match = /language-(\w+)/.exec(className || '');
-                                    const language = match ? match[1] : '';
-                                    const codeContent = String(children).replace(/\n$/, '');
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                    code(props) {
+                                        const { node, inline, className, children, ...rest } = props as any;
+                                        const match = /language-(\w+)/.exec(className || '');
+                                        const language = match ? match[1] : '';
+                                        const codeContent = String(children).replace(/\n$/, '');
 
-                                    // Check if it's a PlantUML diagram
-                                    if (!inline && (language === 'plantuml' || language === 'uml')) {
-                                        return <PlantUMLDiagram code={codeContent} />;
-                                    }
+                                        // Check if it's a PlantUML diagram
+                                        if (!inline && (language === 'plantuml' || language === 'uml')) {
+                                            return <PlantUMLDiagram code={codeContent} />;
+                                        }
 
-                                    // Regular code block
-                                    if (!inline) {
+                                        // Regular code block
+                                        if (!inline) {
+                                            return (
+                                                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto shadow-lg">
+                                                    <code className={className} {...rest}>
+                                                        {children}
+                                                    </code>
+                                                </pre>
+                                            );
+                                        }
+
+                                        // Inline code
                                         return (
-                                            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto shadow-lg">
-                                                <code className={className} {...rest}>
-                                                    {children}
-                                                </code>
-                                            </pre>
+                                            <code className={className} {...rest}>
+                                                {children}
+                                            </code>
                                         );
                                     }
-
-                                    // Inline code
-                                    return (
-                                        <code className={className} {...rest}>
-                                            {children}
-                                        </code>
-                                    );
-                                }
-                            }}
-                        >
-                            {document.content}
-                        </ReactMarkdown>
-                    </div>
+                                }}
+                            >
+                                {document.content}
+                            </ReactMarkdown>
+                        </div>
+                    )}
 
                     {/* Comments Section */}
                     <CommentsSection
