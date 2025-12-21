@@ -1,4 +1,4 @@
-import { FileText, Target, Rocket, CheckSquare } from 'lucide-react';
+import { FileText, Target, Rocket, CheckSquare, Calendar } from 'lucide-react';
 import type { Category, CategoryConfig } from '@/types';
 
 export const CATEGORIES: CategoryConfig[] = [
@@ -6,4 +6,5 @@ export const CATEGORIES: CategoryConfig[] = [
     { id: 'current-plan' as Category, label: 'Current Plan', icon: Target, color: 'bg-gray-600' },
     { id: 'future-plans' as Category, label: 'Future Plans', icon: Rocket, color: 'bg-gray-500' },
     { id: 'tasks' as Category, label: 'Tasks', icon: CheckSquare, color: 'bg-gray-800' },
+    { id: 'habit-tracker' as Category, label: 'Habit Tracker', icon: Calendar, color: 'bg-green-600' },
 ];

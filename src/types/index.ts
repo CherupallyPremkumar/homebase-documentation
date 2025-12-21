@@ -1,7 +1,7 @@
 import type { LucideProps } from 'lucide-react';
 import type { FC } from 'react';
 
-export type Category = 'documentation' | 'current-plan' | 'future-plans' | 'tasks';
+export type Category = 'documentation' | 'current-plan' | 'future-plans' | 'tasks' | 'habit-tracker';
 
 export interface DocItem {
     id: string;
