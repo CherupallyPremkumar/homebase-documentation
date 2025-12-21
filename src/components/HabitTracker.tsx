@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Check, X, Calendar } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Check, X, Calendar, Save } from 'lucide-react';
+import { githubService } from '@/services/github';
 
 interface HabitData {
     [date: string]: {
@@ -20,11 +21,69 @@ export function HabitTracker() {
     ]);
 
     const [habitData, setHabitData] = useState<HabitData>({});
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+    const dataFilePath = `src/docs/habit-tracker/data/${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}.json`;
+
+    // Load data from Git on mount
+    useEffect(() => {
+        loadDataFromGit();
+    }, []);
+
+    const loadDataFromGit = async () => {
+        try {
+            const file = await githubService.getFile(dataFilePath);
+            if (file && file.content) {
+                const decoded = atob(file.content);
+                const data = JSON.parse(decoded);
+                setHabitData(data);
+            }
+        } catch (error) {
+            console.log('No existing data file, starting fresh');
+            setHabitData({});
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const saveDataToGit = async (newData: HabitData) => {
+        setSaving(true);
+        try {
+            const content = JSON.stringify(newData, null, 2);
+            const file = await githubService.getFile(dataFilePath);
+
+            if (file && file.sha) {
+                // Update existing file
+                await githubService.updateFile(
+                    dataFilePath,
+                    content,
+                    file.sha,
+                    `Update habit tracker data for ${currentMonth}`
+                );
+            } else {
+                // Create new file
+                await githubService.createFile(
+                    dataFilePath,
+                    content,
+                    `Create habit tracker data for ${currentMonth}`
+                );
+            }
+
+            setLastSaved(new Date());
+        } catch (error) {
+            console.error('Failed to save habit data:', error);
+            alert('Failed to save data. Please try again.');
+        } finally {
+            setSaving(false);
+        }
+    };
 
     const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
     const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
-    const toggleHabit = (day: number, habit: string) => {
+    const toggleHabit = async (day: number, habit: string) => {
         const key = `${day}`;
         const current = habitData[key]?.[habit];
 
@@ -37,13 +96,18 @@ export function HabitTracker() {
             newStatus = null;
         }
 
-        setHabitData(prev => ({
-            ...prev,
+        const newData = {
+            ...habitData,
             [key]: {
-                ...prev[key],
+                ...habitData[key],
                 [habit]: newStatus
             }
-        }));
+        };
+
+        setHabitData(newData);
+
+        // Save to Git automatically
+        await saveDataToGit(newData);
     };
 
     const getStatusIcon = (day: number, habit: string) => {
@@ -82,11 +146,29 @@ export function HabitTracker() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center gap-3 pb-4 border-b">
-                <Calendar className="h-6 w-6 text-green-600" />
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Monthly Habit Tracker</h2>
-                    <p className="text-sm text-gray-600">{currentMonth}</p>
+            <div className="flex items-center justify-between pb-4 border-b">
+                <div className="flex items-center gap-3">
+                    <Calendar className="h-6 w-6 text-green-600" />
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-900">Monthly Habit Tracker</h2>
+                        <p className="text-sm text-gray-600">{currentMonth}</p>
+                    </div>
+                </div>
+
+                {/* Save Status */}
+                <div className="flex items-center gap-2 text-sm">
+                    {loading ? (
+                        <span className="text-gray-500">Loading...</span>
+                    ) : saving ? (
+                        <span className="flex items-center gap-1 text-blue-600">
+                            <Save className="h-4 w-4 animate-pulse" />
+                            Saving...
+                        </span>
+                    ) : lastSaved ? (
+                        <span className="text-green-600">
+                            ✓ Saved to Git
+                        </span>
+                    ) : null}
                 </div>
             </div>
 
@@ -156,8 +238,8 @@ export function HabitTracker() {
                                         <td className="px-4 py-2 text-center text-sm text-red-600 font-medium">{stats.missed}</td>
                                         <td className="px-4 py-2 text-center text-sm font-medium">
                                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${stats.rate >= 80 ? 'bg-green-100 text-green-800' :
-                                                    stats.rate >= 50 ? 'bg-yellow-100 text-yellow-800' :
-                                                        'bg-red-100 text-red-800'
+                                                stats.rate >= 50 ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-red-100 text-red-800'
                                                 }`}>
                                                 {stats.rate}%
                                             </span>
